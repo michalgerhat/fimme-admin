@@ -29,7 +29,6 @@ export function ContextProvider (props)
             ws.onmessage = (e) =>
             {
                 var msg = JSON.parse(e.data);
-                console.log(msg);
 
                 switch (msg.channel)
                 {
@@ -49,7 +48,7 @@ export function ContextProvider (props)
                         break;
 
                     case "unauthenticated":
-                        ws.send(JSON.stringify({ token: null, channel: "authenticate", data: refreshToken }));
+                        ws && ws.send(JSON.stringify({ token: null, channel: "authenticate", data: refreshToken }));
                         break;
 
                     case "users-list":
@@ -81,34 +80,34 @@ export function ContextProvider (props)
     const login = (username, password) =>
     {
         var data =  { username: username, password: password };
-        ws.send(JSON.stringify({ token: accessToken, channel: "request-admin-login", data: data }));
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "request-admin-login", data: data }));
     }
 
     const createUser = (username, password) =>
     {
         var data = { username: username, password: password };
-        ws.send(JSON.stringify({ token: accessToken, channel: "request-register", data: data }));
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "request-register", data: data }));
     }
 
     const changePassword = (username, password) =>
     {
         var data = { username: username, password: password };
-        ws.send(JSON.stringify({ token: accessToken, channel: "change-password", data: data }));
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "change-password", data: data }));
     }
 
     const removeUser = (username) =>
     {
-        ws.send(JSON.stringify({ token: accessToken, channel: "remove-user", data: username }));
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "remove-user", data: username }));
     }
 
     const refreshUsers = () =>
     {
-        ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
     }
 
     const refreshConnections = () =>
     {
-        ws.send(JSON.stringify({ token: accessToken, channel: "fetch-connections", data: "" }));
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-connections", data: "" }));
     }
 
     return (

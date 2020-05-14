@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import LoginForm from './LoginForm';
+import ConnectionsList from './ConnectionsList';
 import { ContextProvider, ContextConsumer } from './Context';
 
 const theme = createMuiTheme({
@@ -15,7 +16,7 @@ const theme = createMuiTheme({
     }
 });
 
-function App() 
+export default function App () 
 {
     return (
         <MuiThemeProvider theme={theme}>
@@ -37,7 +38,7 @@ function App()
                                 { loggedIn && <Redirect to="/connections" />}
                             </Route>
                             <Route exact path="/connections">
-
+                                <ConnectionsList />
                             </Route>
                             <Route exact path="/users">
 
@@ -50,5 +51,3 @@ function App()
         </MuiThemeProvider>
     );
 }
-
-export default App;

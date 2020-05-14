@@ -11,7 +11,7 @@ const useStyles = makeStyles(theme => ({
         margin: 'auto',
         marginTop: theme.spacing(4),
         padding: theme.spacing(2),
-        maxWidth: '480px'
+        maxWidth: 480
     },
     button: {
         height: '56px'
