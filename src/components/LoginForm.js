@@ -61,7 +61,6 @@ export default function LoginForm ()
                                 className={classes.button}
                                 variant="contained" color="primary"
                                 fullWidth size="large"
-                                disabled={context.connected}
                                 onClick={context.connect.bind(this, server)}>
                                     { context.connected ? "Connected" : "Connect" }
                             </Button>
