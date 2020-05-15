@@ -5,6 +5,7 @@ export const Context = createContext();
 export function ContextProvider (props)
 {
     const [ws, setWs] = useState(null);
+    const [missedMessage, setMissedMessage] = useState(null);
     const [connected, setConnected] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
     const [accessToken, setAccessToken] = useState(null);
@@ -29,6 +30,7 @@ export function ContextProvider (props)
             ws.onmessage = (e) =>
             {
                 var msg = JSON.parse(e.data);
+                console.log(msg);
 
                 switch (msg.channel)
                 {
@@ -48,6 +50,7 @@ export function ContextProvider (props)
                         break;
 
                     case "unauthenticated":
+                        setMissedMessage(msg.data);
                         ws && ws.send(JSON.stringify({ token: null, channel: "authenticate", data: refreshToken }));
                         break;
 
@@ -57,6 +60,11 @@ export function ContextProvider (props)
 
                     case "connections-list":
                         setConnections(msg.data);
+                        break;
+
+                    case "register-accepted":
+                    case "user-removed":
+                        ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
                         break;
 
                     case "logged-out":
@@ -81,6 +89,15 @@ export function ContextProvider (props)
             }
         }
     }, [ws, accessToken, refreshToken]);
+
+    useEffect(() =>
+    {
+        if (missedMessage) 
+        {
+            ws && ws.send(JSON.stringify({ token: accessToken, channel: missedMessage.channel, data: missedMessage.data }));
+            setMissedMessage(null);
+        }
+    }, [ws, accessToken, refreshToken, missedMessage]);
 
     const connect = (url) =>
     {

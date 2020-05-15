@@ -4,6 +4,7 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import Header from './Header';
 import LoginForm from './LoginForm';
 import ConnectionsList from './ConnectionsList';
+import UsersList from './UsersList';
 import { ContextProvider, ContextConsumer } from './Context';
 
 const theme = createMuiTheme({
@@ -45,7 +46,7 @@ export default function App ()
                             </Route>
                             <Route exact path="/users">
                                 <Header />
-                                
+                                <UsersList />
                                 { !loggedIn && <Redirect to="/login" />}
                             </Route>
                         </Switch>

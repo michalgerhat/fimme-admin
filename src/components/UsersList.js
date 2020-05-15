@@ -7,8 +7,12 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import IconButton from '@material-ui/core/IconButton';
+import RemoveIcon from '@material-ui/icons/Clear';
 import Fab from '@material-ui/core/Fab';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import NewUserForm from './NewUserForm';
+import IconButtonWithDialog from './IconButtonWithDialog';
 import { Context } from './Context';
 
 const StyledTableCell = withStyles((theme) => (
@@ -39,6 +43,10 @@ const useStyles = makeStyles((theme) => (
         minWidth: 480,
         maxWidth: 800
     },
+    rightCell: {
+        width: 48,
+        padding: 0
+    },
     fab: {
       position: 'absolute',
       bottom: theme.spacing(4),
@@ -46,44 +54,52 @@ const useStyles = makeStyles((theme) => (
     }
 }));
 
-export default function ConnectionList ()
+export default function UsersList ()
 {
     const classes = useStyles();
     const context = useContext(Context);
 
     useEffect(() =>
     {
-        if (context.connections.length === 0)
-            context.refreshConnections();
+        if (context.users.length === 0)
+            context.refreshUsers();
     }, [context]);
+
+    const handleRemove = (username) => 
+    {
+        context.removeUser(username);
+    };
 
     return (
         <React.Fragment>
             <Fab
                 className={classes.fab} color="primary"
-                onClick={context.refreshConnections.bind(this)}>
+                onClick={context.refreshUsers}>
                     <RefreshIcon />
             </Fab>
+            <NewUserForm />
             <TableContainer component={Paper} className={classes.root}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <StyledTableCell>Timestamp</StyledTableCell>
-                            <StyledTableCell align="right">Client A's coordinates</StyledTableCell>
-                            <StyledTableCell align="right">Client B's coordinates</StyledTableCell>
+                            <StyledTableCell>Username</StyledTableCell>
+                            <StyledTableCell />
+                            <StyledTableCell />
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {context.connections.map((item, index) => (
+                        {context.users.map((item, index) => (
                         <StyledTableRow key={index}>
                             <StyledTableCell component="th" scope="row">
-                                {new Date(item.timestamp * 1000).toLocaleString()}
+                                {item.username}
                             </StyledTableCell>
-                            <StyledTableCell align="right">
-                                lat: {item.a_lat} lon: {item.a_lon} alt: {item.a_alt}
+                            <StyledTableCell className={classes.rightCell} align="right">
+                                <IconButtonWithDialog username={item.username} />
                             </StyledTableCell>
-                            <StyledTableCell align="right">
-                                lat: {item.b_lat} lon: {item.b_lon} alt: {item.b_alt}
+                            <StyledTableCell className={classes.rightCell} align="right">
+                                <IconButton onClick={handleRemove.bind(this, item.username)}>
+                                    <RemoveIcon />
+                                </IconButton>
                             </StyledTableCell>
                         </StyledTableRow>
                         ))}
