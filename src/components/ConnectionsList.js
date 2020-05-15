@@ -53,7 +53,6 @@ export default function ConnectionList ()
 
     useEffect(() =>
     {
-        console.log(context.connections);
         if (context.connections.length === 0)
             context.refreshConnections();
     }, [context]);

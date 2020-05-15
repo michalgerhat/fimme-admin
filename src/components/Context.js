@@ -59,6 +59,17 @@ export function ContextProvider (props)
                         setConnections(msg.data);
                         break;
 
+                    case "logged-out":
+                        setUsers([]);
+                        setConnections([]);
+                        setLoggedIn(false);
+                        setConnected(false);
+                        setAccessToken(null);
+                        setRefreshToken(null);
+                        ws && ws.close();
+                        setWs(null);
+                        break;
+
                     default:
                         break;
                 }
@@ -75,40 +86,45 @@ export function ContextProvider (props)
     {
         if (url !== "")
             setWs(new WebSocket(url));
-    }
+    };
 
     const login = (username, password) =>
     {
         var data =  { username: username, password: password };
         ws && ws.send(JSON.stringify({ token: accessToken, channel: "request-admin-login", data: data }));
-    }
+    };
+
+    const logout = () =>
+    {
+        ws && ws.send(JSON.stringify({ token: accessToken, channel: "request-logout", data: refreshToken }));
+    };
 
     const createUser = (username, password) =>
     {
         var data = { username: username, password: password };
         ws && ws.send(JSON.stringify({ token: accessToken, channel: "request-register", data: data }));
-    }
+    };
 
     const changePassword = (username, password) =>
     {
         var data = { username: username, password: password };
         ws && ws.send(JSON.stringify({ token: accessToken, channel: "change-password", data: data }));
-    }
+    };
 
     const removeUser = (username) =>
     {
         ws && ws.send(JSON.stringify({ token: accessToken, channel: "remove-user", data: username }));
-    }
+    };
 
     const refreshUsers = () =>
     {
         ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
-    }
+    };
 
     const refreshConnections = () =>
     {
         ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-connections", data: "" }));
-    }
+    };
 
     return (
         <Context.Provider
@@ -119,6 +135,7 @@ export function ContextProvider (props)
                 loggedIn: loggedIn,
                 connect: (url) => connect(url),
                 login: (username, password) => login(username, password),
+                logout: () => logout(),
                 createUser: (username, password) => createUser(username, password),
                 changePassword: (username, password) => changePassword(username, password),
                 removeUser: (username) => removeUser(username),

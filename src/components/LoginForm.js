@@ -29,17 +29,17 @@ export default function LoginForm ()
     const handleServer = (event) =>
     {
         setServer(event.target.value);
-    }
+    };
 
     const handleUsername = (event) =>
     {
         setUsername(event.target.value);
-    }
+    };
 
     const handlePassword = (event) =>
     {
         setPassword(event.target.value);
-    }
+    };
 
     return (
         <ContextConsumer>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import Header from './Header';
 import LoginForm from './LoginForm';
 import ConnectionsList from './ConnectionsList';
 import { ContextProvider, ContextConsumer } from './Context';
@@ -11,7 +12,7 @@ const theme = createMuiTheme({
             main: '#6200EE'
         },
         secondary: {
-            main: '#B180F7'
+            main: '#FFFFFF'
         }
     }
 });
@@ -38,10 +39,14 @@ export default function App ()
                                 { loggedIn && <Redirect to="/connections" />}
                             </Route>
                             <Route exact path="/connections">
+                                <Header />
                                 <ConnectionsList />
+                                { !loggedIn && <Redirect to="/login" />}
                             </Route>
                             <Route exact path="/users">
-
+                                <Header />
+                                
+                                { !loggedIn && <Redirect to="/login" />}
                             </Route>
                         </Switch>
                     </Router>
