@@ -61,6 +61,7 @@ export default function ConnectionList ()
         <React.Fragment>
             <Fab
                 className={classes.fab} color="primary"
+                disabled={!context.connected}
                 onClick={context.refreshConnections.bind(this)}>
                     <RefreshIcon />
             </Fab>

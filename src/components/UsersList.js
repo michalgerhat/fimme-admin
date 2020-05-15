@@ -74,6 +74,7 @@ export default function UsersList ()
         <React.Fragment>
             <Fab
                 className={classes.fab} color="primary"
+                disabled={!context.connected}
                 onClick={context.refreshUsers}>
                     <RefreshIcon />
             </Fab>
@@ -97,7 +98,9 @@ export default function UsersList ()
                                 <IconButtonWithDialog username={item.username} />
                             </StyledTableCell>
                             <StyledTableCell className={classes.rightCell} align="right">
-                                <IconButton onClick={handleRemove.bind(this, item.username)}>
+                                <IconButton
+                                    disabled={!context.connected}
+                                    onClick={handleRemove.bind(this, item.username)}>
                                     <RemoveIcon />
                                 </IconButton>
                             </StyledTableCell>

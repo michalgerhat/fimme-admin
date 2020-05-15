@@ -37,8 +37,10 @@ export default function IconButtonWithDialog ({username})
 
     return (
         <React.Fragment>
-            <IconButton onClick={handleClickOpen}>
-                <KeyIcon />
+            <IconButton 
+                disabled={!context.connected}
+                onClick={handleClickOpen}>
+                    <KeyIcon />
             </IconButton>
             <Dialog open={open} onClose={handleClose}>
                 <DialogContent>

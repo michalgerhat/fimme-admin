@@ -1,10 +1,14 @@
 import React, { useState, useEffect, createContext } from 'react';
+import { useSnackbar } from 'notistack';
 
 export const Context = createContext();
 
 export function ContextProvider (props)
 {
+    const { enqueueSnackbar } = useSnackbar();
+
     const [ws, setWs] = useState(null);
+    const [lastUrl, setLastUrl] = useState(null);
     const [missedMessage, setMissedMessage] = useState(null);
     const [connected, setConnected] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
@@ -13,82 +17,85 @@ export function ContextProvider (props)
     const [users, setUsers] = useState([]);
     const [connections, setConnections] = useState([]);
 
-    useEffect(() =>
+    if (ws)
     {
-        if (ws)
+        ws.onopen = () =>
         {
-            ws.onopen = () =>
+            enqueueSnackbar("Connected to the server.");
+            setConnected(true);
+        }
+
+        ws.onmessage = (e) =>
+        {
+            var msg = JSON.parse(e.data);
+            console.log(msg);
+
+            switch (msg.channel)
             {
-                setConnected(true);
-            }
+                case "admin-login-accepted":
+                    setAccessToken(msg.data.accessToken);
+                    setRefreshToken(msg.data.refreshToken);
+                    setLoggedIn(true);
+                    break;
 
-            ws.onerror = () =>
-            {
-                setConnected(false);
-            }
+                case "admin-login-denied":
+                    enqueueSnackbar("Login denied. Please check your credentials.");
+                    setLoggedIn(false);
+                    break;
 
-            ws.onmessage = (e) =>
-            {
-                var msg = JSON.parse(e.data);
-                console.log(msg);
+                case "authenticated":
+                    setAccessToken(msg.data.accessToken);
+                    setRefreshToken(msg.data.refreshToken);
+                    break;
 
-                switch (msg.channel)
-                {
-                    case "admin-login-accepted":
-                        setAccessToken(msg.data.accessToken);
-                        setRefreshToken(msg.data.refreshToken);
-                        setLoggedIn(true);
-                        break;
+                case "unauthenticated":
+                    setMissedMessage(msg.data);
+                    ws && ws.send(JSON.stringify({ token: null, channel: "authenticate", data: refreshToken }));
+                    break;
 
-                    case "admin-login-denied":
-                        setLoggedIn(false);
-                        break;
+                case "users-list":
+                    setUsers(msg.data);
+                    break;
 
-                    case "authenticated":
-                        setAccessToken(msg.data.accessToken);
-                        setRefreshToken(msg.data.refreshToken);
-                        break;
+                case "connections-list":
+                    setConnections(msg.data);
+                    break;
 
-                    case "unauthenticated":
-                        setMissedMessage(msg.data);
-                        ws && ws.send(JSON.stringify({ token: null, channel: "authenticate", data: refreshToken }));
-                        break;
+                case "register-accepted":
+                    enqueueSnackbar("User created.");
+                    ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
+                    break;
 
-                    case "users-list":
-                        setUsers(msg.data);
-                        break;
+                case "user-removed":
+                    enqueueSnackbar("User removed.");
+                    ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
+                    break;
 
-                    case "connections-list":
-                        setConnections(msg.data);
-                        break;
+                case "logged-out":
+                    enqueueSnackbar("Logged out.");
+                    setUsers([]);
+                    setConnections([]);
+                    setLoggedIn(false);
+                    setConnected(false);
+                    setAccessToken(null);
+                    setRefreshToken(null);
+                    ws && ws.close();
+                    setWs(null);
+                    break;
 
-                    case "register-accepted":
-                    case "user-removed":
-                        ws && ws.send(JSON.stringify({ token: accessToken, channel: "fetch-users", data: "" }));
-                        break;
-
-                    case "logged-out":
-                        setUsers([]);
-                        setConnections([]);
-                        setLoggedIn(false);
-                        setConnected(false);
-                        setAccessToken(null);
-                        setRefreshToken(null);
-                        ws && ws.close();
-                        setWs(null);
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            ws.onclose = () =>
-            {
-                setConnected(false);
+                default:
+                    break;
             }
         }
-    }, [ws, accessToken, refreshToken]);
+
+        ws.onclose = () =>
+        {
+            enqueueSnackbar("Connection with server failed. Trying to reconnect...");
+            setConnected(false);
+            if (lastUrl)
+                setWs(new WebSocket(lastUrl));
+        }
+    }
 
     useEffect(() =>
     {
@@ -102,7 +109,10 @@ export function ContextProvider (props)
     const connect = (url) =>
     {
         if (url !== "")
+        {
             setWs(new WebSocket(url));
+            setLastUrl(url);
+        }
     };
 
     const login = (username, password) =>
