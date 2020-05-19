@@ -1,144 +1,161 @@
-import React, { useState, createContext } from 'react';
+import React, { useState, createContext, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 import Cookies from 'universal-cookie';
 
 export const Context = createContext();
 
+const cookies = new Cookies();
+var lastUrl = cookies.get("fimme-server");
+var ws = null;
+var reconnect = null;
+var accessToken = null;
+var refreshToken = cookies.get("fimme-token");
+var online = false;
+
 export function ContextProvider (props)
 {
-    const cookies = new Cookies();
     const { enqueueSnackbar } = useSnackbar();
 
-    const [ws, setWs] = useState(null);
-    const [lastUrl, setLastUrl] = useState(null);
     const [missedMessage, setMissedMessage] = useState(null);
     const [connected, setConnected] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
-    const [accessToken, setAccessToken] = useState(null);
-    const [refreshToken, setRefreshToken] = useState(null);
     const [users, setUsers] = useState([]);
     const [connections, setConnections] = useState([]);
 
-    if (ws)
+    useEffect(() =>
     {
-        ws.onopen = () =>
-        {
-            enqueueSnackbar("Connected to the server.");
-            setConnected(true);
-            cookies.set("fimme-server", lastUrl);
-            var token = cookies.get("fimme-token");
-            if (token)
-                sendMessage("authenticate", token);
-        }
+        connect(lastUrl);
+    }, []);
 
-        ws.onmessage = (e) =>
-        {
-            var msg = JSON.parse(e.data);
-
-            switch (msg.channel)
-            {
-                case "admin-login-accepted":
-                    set(msg.data.accessToken, msg.data.refreshToken);
-                    break;
-
-                case "admin-login-denied":
-                    enqueueSnackbar("Login denied. Please check your credentials.");
-                    setLoggedIn(false);
-                    break;
-
-                case "authenticated":
-                    set(msg.data.accessToken, msg.data.refreshToken);
-                    if (missedMessage) 
-                    {
-                        sendMessage(missedMessage.channel, missedMessage.data);
-                        setMissedMessage(null);
-                    }
-                    break;
-
-                case "unauthenticated":
-                    if (msg.data.channel !== "authenticate")
-                    {
-                        setMissedMessage(msg.data);
-                        sendMessage("authenticate", refreshToken);
-                    }
-                    else
-                        reset();
-                    break;
-
-                case "users-list":
-                    setUsers(msg.data);
-                    break;
-
-                case "connections-list":
-                    setConnections(msg.data);
-                    break;
-
-                case "register-accepted":
-                    enqueueSnackbar("User created.");
-                    sendMessage("fetch-users", "");
-                    break;
-
-                case "user-removed":
-                    enqueueSnackbar("User removed.");
-                    sendMessage("fetch-users", "");
-                    break;
-
-                case "logged-out":
-                    reset();
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        ws.onclose = () =>
-        {
-            enqueueSnackbar("Connection with server failed. Trying to reconnect...");
-            setConnected(false);
-            if (lastUrl)
-                setWs(new WebSocket(lastUrl));
-        }
-    }
-
-    function set(accessToken, refreshToken)
+    function set(access, refresh)
     {
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
-        cookies.set("fimme-token", refreshToken);
+        accessToken = access;
+        refreshToken = refresh;
+        cookies.set("fimme-token", refresh);
         setLoggedIn(true);
     }
 
     function reset()
     {
+        ws && ws.close();
+        ws = null;
+        lastUrl = null;
+        accessToken = null;
+        refreshToken = null;
+        online = false;
+
+        setConnected(false);
+        setLoggedIn(false);
         setUsers([]);
         setConnections([]);
-        setLoggedIn(false);
-        setConnected(false);
-        setAccessToken(null);
-        setRefreshToken(null);
-        ws && ws.close();
-        setWs(null);
-        setLastUrl(null);
         cookies.remove("fimme-token");
-        cookies.remove("fimme-server");
         enqueueSnackbar("Logged out.");
     }
 
     function sendMessage(channel, data)
     {
-        var token = channel === "authenticate" ? null : accessToken; 
-        ws && ws.send(JSON.stringify({ token: token, channel: channel, data: data }));
+        var token = channel === "authenticate" ? null : accessToken;
+        online && ws.send(JSON.stringify({ token: token, channel: channel, data: data }));
     }
 
-    const connect = (url) =>
+    const connect = (providedUrl) =>
     {
-        if (url !== "")
+        var url = providedUrl ? providedUrl : lastUrl;
+
+        if (url && url !== "")
         {
-            setLastUrl(url);
-            setWs(new WebSocket(url));
+            lastUrl = url;
+            ws = new WebSocket(url);
+    
+            ws.onopen = () =>
+            {
+                clearInterval(reconnect);
+                enqueueSnackbar("Connected to the server.");
+                setConnected(true);
+                online = true;
+                cookies.set("fimme-server", lastUrl);
+                
+                
+                var token = cookies.get("fimme-token");
+                if (token)
+                   sendMessage("authenticate", token);
+            }
+    
+            ws.onmessage = (e) =>
+            {
+                var msg = JSON.parse(e.data);
+    
+                switch (msg.channel)
+                {
+                    case "admin-login-accepted":
+                        set(msg.data.accessToken, msg.data.refreshToken);
+                        refreshConnections();
+                        refreshUsers();
+                        break;
+    
+                    case "admin-login-denied":
+                        enqueueSnackbar("Login denied. Please check your credentials.");
+                        setLoggedIn(false);
+                        break;
+    
+                    case "authenticated":
+                        set(msg.data.accessToken, msg.data.refreshToken);
+                        if (missedMessage) 
+                        {
+                            sendMessage(missedMessage.channel, missedMessage.data);
+                            setMissedMessage(null);
+                        }
+                        refreshConnections();
+                        refreshUsers();
+                        break;
+    
+                    case "unauthenticated":
+                        if (msg.data.channel !== "authenticate")
+                        {
+                            setMissedMessage(msg.data);
+                            sendMessage("authenticate", refreshToken);
+                        }
+                        else
+                            reset();
+                        break;
+    
+                    case "users-list":
+                        setUsers(msg.data);
+                        break;
+    
+                    case "connections-list":
+                        setConnections(msg.data);
+                        break;
+    
+                    case "register-accepted":
+                        enqueueSnackbar("User created.");
+                        sendMessage("fetch-users", "");
+                        break;
+    
+                    case "user-removed":
+                        enqueueSnackbar("User removed.");
+                        sendMessage("fetch-users", "");
+                        break;
+    
+                    case "logged-out":
+                        reset();
+                        break;
+    
+                    default:
+                        break;
+                }
+            }
+    
+            ws.onclose = () =>
+            {
+                enqueueSnackbar("Connection with server failed. Trying to reconnect...");
+                setConnected(false);
+                online = false;
+                clearInterval(reconnect);
+                reconnect = setInterval(connect.bind(this, lastUrl), 2000);
+            }
         }
-    };
+    }
 
     const login = (username, password) =>
     {
@@ -185,6 +202,7 @@ export function ContextProvider (props)
                 connections: connections,
                 connected: connected,
                 loggedIn: loggedIn,
+                lastUrl: lastUrl,
                 connect: (url) => connect(url),
                 login: (username, password) => login(username, password),
                 logout: () => logout(),

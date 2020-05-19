@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { withStyles, makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -50,12 +50,6 @@ export default function ConnectionList ()
 {
     const classes = useStyles();
     const context = useContext(Context);
-
-    useEffect(() =>
-    {
-        if (context.connections.length === 0)
-            context.refreshConnections();
-    }, [context]);
 
     return (
         <React.Fragment>

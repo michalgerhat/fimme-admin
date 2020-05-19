@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { withStyles, makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -58,12 +58,6 @@ export default function UsersList ()
 {
     const classes = useStyles();
     const context = useContext(Context);
-
-    useEffect(() =>
-    {
-        if (context.users.length === 0)
-            context.refreshUsers();
-    }, [context]);
 
     const handleRemove = (username) => 
     {

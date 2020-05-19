@@ -23,7 +23,7 @@ export default function LoginForm ()
     const classes = useStyles();
     const context = useContext(Context);
 
-    const [server, setServer] = useState("ws://localhost:8080");
+    const [server, setServer] = useState(context.lastUrl);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 

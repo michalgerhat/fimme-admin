@@ -39,17 +39,17 @@ export default function App ()
                                 </Route>
                                 <Route exact path="/login">
                                     <LoginForm />
-                                    { loggedIn && <Redirect to="/connections" />}
+                                    { loggedIn && <Redirect to="/connections" /> }
                                 </Route>
                                 <Route exact path="/connections">
                                     <Header />
                                     <ConnectionsList />
-                                    { !loggedIn && <Redirect to="/login" />}
+                                    { !loggedIn && <Redirect to="/login" /> } 
                                 </Route>
                                 <Route exact path="/users">
                                     <Header />
                                     <UsersList />
-                                    { !loggedIn && <Redirect to="/login" />}
+                                    { !loggedIn && <Redirect to="/login" /> }
                                 </Route>
                             </Switch>
                         </Router>
