@@ -29,27 +29,27 @@ export default function App ()
                     {({loggedIn}) => (
                         <Router>
                             <Switch>
-                                <Route exact path="/">
+                                <Route exact path="/fimme-admin">
                                 {
                                     loggedIn ?
-                                        <Redirect to="/connections" />
+                                        <Redirect to="/fimme-admin/connections" />
                                     :
-                                        <Redirect to="/login" />
+                                        <Redirect to="/fimme-admin/login" />
                                 }
                                 </Route>
-                                <Route exact path="/login">
+                                <Route exact path="/fimme-admin/login">
                                     <LoginForm />
-                                    { loggedIn && <Redirect to="/connections" /> }
+                                    { loggedIn && <Redirect to="/fimme-admin/connections" /> }
                                 </Route>
-                                <Route exact path="/connections">
+                                <Route exact path="/fimme-admin/connections">
                                     <Header />
                                     <ConnectionsList />
-                                    { !loggedIn && <Redirect to="/login" /> } 
+                                    { !loggedIn && <Redirect to="/fimme-admin/login" /> } 
                                 </Route>
-                                <Route exact path="/users">
+                                <Route exact path="/fimme-admin/users">
                                     <Header />
                                     <UsersList />
-                                    { !loggedIn && <Redirect to="/login" /> }
+                                    { !loggedIn && <Redirect to="/fimme-admin/login" /> }
                                 </Route>
                             </Switch>
                         </Router>

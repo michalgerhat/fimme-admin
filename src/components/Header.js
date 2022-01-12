@@ -64,16 +64,16 @@ export default function Header () {
     const handleLogout = () => 
     {
         context.logout();
-        history.push("/login");
+        history.push("/fimme-admin/login");
         setAnchorEl(null);
     };
 
 	const handleConnections = () => {
-        history.push("/connections");
+        history.push("/fimme-admin/connections");
 	};
 
 	const handleUsers = () => {
-        history.push("/users");
+        history.push("/fimme-admin/users");
     };
 
 	return (

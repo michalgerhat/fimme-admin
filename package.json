@@ -1,6 +1,7 @@
 {
   "name": "fimme-admin",
   "version": "0.1.0",
+  "homepage": "./",
   "description": "Administration console for Fimme server",
   "private": true,
   "dependencies": {
