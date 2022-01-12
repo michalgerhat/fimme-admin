@@ -2,13 +2,17 @@
 
 Standalone administration console for [Fimme-server](https://github.com/michalgerhat/fimme-server). Allows for Fimme user management and connection history viewing.
 
-## Usage
+## Demo
 
-* `npm start` to run development build locally.
-* [Live demo here](https://gerhat.cz/fimme-admin). Log in with these credentials:
+* [Live demo here](https://gerhat.cz/fimme-admin).
+* Log in with these credentials:
   * Server URL: wss://gerhat.cz/fimme-server
   * Username: admin
   * Password: heslo
+
+## Usage
+
+* `npm start` to run development build locally.
 
 
 ## Features
